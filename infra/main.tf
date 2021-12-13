@@ -14,6 +14,9 @@ locals {
   ecs_cpu = 512
   ecs_memory = 1024
   ecs_container_name = "nextjs-image"
+  ecs_log_group = "/aws/ecs/${var.project_id}-${var.env}"
+  # Retention in days
+  ecs_log_retention = 1
 }
 
 module "networking" {
@@ -112,11 +115,17 @@ module "ecr_ecs_ci_user" {
 }
 
 resource "aws_ecs_cluster" "web_cluster" {
-  name = "web-cluster-node"
+  name = "web-cluster-${var.project_id}-${var.env}"
   setting {
     name  = "containerInsights"
     value = "enabled"
   }
+}
+
+resource "aws_cloudwatch_log_group" "ecs" {
+  name = local.ecs_log_group
+  # This can be changed
+  retention_in_days = local.ecs_log_retention
 }
 
 data "template_file" "task_def_generated" {
@@ -131,6 +140,7 @@ data "template_file" "task_def_generated" {
     ecs_execution_role  = module.ecs_roles.ecs_execution_role_arn
     launch_type         = local.ecs_launch_type
     network_mode        = local.ecs_network_mode
+    log_group           = local.ecs_log_group
   }
 }
 
@@ -156,7 +166,7 @@ resource "aws_ecs_task_definition" "nextjs" {
 }
 
 resource "aws_ecs_service" "web_ecs_service" {
-  name            = "web-${var.project_id}-${var.env}"
+  name            = "web-service-${var.project_id}-${var.env}"
   cluster         = aws_ecs_cluster.web_cluster.id
   task_definition = aws_ecs_task_definition.nextjs.arn
   desired_count   = local.ecs_desired_count

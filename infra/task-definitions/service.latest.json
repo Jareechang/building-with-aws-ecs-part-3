@@ -1,34 +1,34 @@
 {
   "family": "task-definition-node",
-  "networkMode": "${network_mode}",
+  "networkMode": "awsvpc",
   "requiresCompatibilities": [
-    "${launch_type}"
+    "FARGATE"
   ],
-  "cpu": "${cpu}",
-  "memory": "${memory}",
-  "executionRoleArn": "${ecs_execution_role}",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::915785397856:role/Policy-Ecs-Execution-Role",
   "containerDefinitions": [
     {
-      "name": "${name}",
+      "name": "nextjs-image",
       "image": "nginx:latest",
-      "memoryReservation": ${memory},
+      "memoryReservation": 1024,
       "portMappings": [
         {
-          "containerPort": ${port},
-          "hostPort": ${port}
+          "containerPort": 3000,
+          "hostPort": 3000
         }
       ],
       "environment": [
         {
           "name": "PORT",
-          "value": "${port}"
+          "value": "3000"
         }
       ],
       "logConfiguration": {
         "logDriver": "awslogs",
         "options": {
-          "awslogs-group": "${log_group}",
-          "awslogs-region": "${aws_region}",
+          "awslogs-group": "/aws/ecs/node-app-prod",
+          "awslogs-region": "us-east-1",
           "awslogs-stream-prefix": "ecs"
         }
       },
